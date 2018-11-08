@@ -6,6 +6,7 @@ require 'tempfile'
 require 'fileutils'
 require 'kubernetes-deploy/kubernetes_resource'
 %w(
+  custom_resource
   cloudsql
   config_map
   deployment
@@ -24,7 +25,6 @@ require 'kubernetes-deploy/kubernetes_resource'
   elasticsearch
   statefulservice
   topic
-  bucket
   stateful_set
   cron_job
   job
@@ -44,11 +44,8 @@ module KubernetesDeploy
   class DeployTask
     include KubeclientBuilder
 
-    PREDEPLOY_SEQUENCE = %w(
+    BASE_PREDEPLOY_SEQUENCE = %w(
       ResourceQuota
-      Cloudsql
-      Redis
-      Memcached
       ConfigMap
       PersistentVolumeClaim
       ServiceAccount
@@ -148,6 +145,8 @@ module KubernetesDeploy
         ejson.run
       end
 
+      add_custom_resources_to_predeploy_sequence(resources)
+
       if deploy_has_priority_resources?(resources)
         @logger.phase_heading("Predeploying priority resources")
         start_priority_resource = Time.now.utc
@@ -204,7 +203,18 @@ module KubernetesDeploy
     private
 
     def cluster_resource_discoverer
-      ResourceDiscovery.new(namespace: @namespace, context: @context, logger: @logger, namespace_tags: @namespace_tags)
+      @cluster_resource_discoverer ||= ResourceDiscovery.new(
+        namespace: @namespace,
+        context: @context,
+        logger: @logger,
+        namespace_tags: @namespace_tags
+      )
+    end
+
+    def add_custom_resources_to_predeploy_sequence(resources)
+      crds = cluster_resource_discoverer.crds(@sync_mediator).map(&:kind)
+      discovered_crs = resources.select { |resource| crds.include? resource.type }
+      DeployTask.const_set("PREDEPLOY_SEQUENCE", (discovered_crs.map(&:type) + BASE_PREDEPLOY_SEQUENCE).uniq)
     end
 
     def deploy_has_priority_resources?(resources)
@@ -244,6 +254,7 @@ module KubernetesDeploy
 
     def discover_resources
       resources = []
+      crds = cluster_resource_discoverer.crds(@sync_mediator)
       @logger.info("Discovering templates:")
 
       Dir.foreach(@template_dir) do |filename|
@@ -251,7 +262,7 @@ module KubernetesDeploy
 
         split_templates(filename) do |r_def|
           r = KubernetesResource.build(namespace: @namespace, context: @context, logger: @logger,
-                                       definition: r_def, statsd_tags: @namespace_tags)
+                                       definition: r_def, statsd_tags: @namespace_tags, crds: crds)
           resources << r
           @logger.info "  - #{r.id}"
         end

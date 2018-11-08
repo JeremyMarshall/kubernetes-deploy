@@ -2,6 +2,8 @@
 module KubernetesDeploy
   class CustomResourceDefinition < KubernetesResource
     TIMEOUT = 2.minutes
+    CHILD_CR_TIMEOUT_ANNOTATION = "kubernetes-deploy.shopify.io/cr-timeout-override"
+    MONITOR_ROLLOUT_ANNOTATION = "kubernetes-deploy.shopify.io/monitor-rollout"
     GLOBAL = true
 
     def deploy_succeeded?
@@ -39,6 +41,14 @@ module KubernetesDeploy
     def prunable?
       prunable = @definition.dig("metadata", "annotations", "kubernetes-deploy.shopify.io/prunable")
       prunable == "true"
+    end
+
+    def timeout_for_children
+      @definition.dig("metadata", "annotations", CHILD_CR_TIMEOUT_ANNOTATION)&.to_i
+    end
+
+    def monitor_rollouts?
+      @definition.dig("metadata", "annotations", MONITOR_ROLLOUT_ANNOTATION) == "true"
     end
 
     private
