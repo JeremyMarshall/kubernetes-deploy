@@ -3,13 +3,12 @@ module KubernetesDeploy
   class CustomResource < KubernetesResource
     def initialize(namespace:, context:, definition:, logger:, statsd_tags: [], crd:)
       @crd = crd
-      deploy_started_at = nil
       super(namespace: namespace, context: context, definition: definition,
             logger: logger, statsd_tags: statsd_tags)
     end
 
     def sync(mediator)
-      @instance_data = mediator.get_instance(@definition["kind"], name, raise_if_not_found: true)
+      @instance_data = mediator.get_instance(kind, name, raise_if_not_found: true)
     rescue KubernetesDeploy::Kubectl::ResourceNotFoundError
       @disappeared = true if deploy_started?
       @instance_data = {}
