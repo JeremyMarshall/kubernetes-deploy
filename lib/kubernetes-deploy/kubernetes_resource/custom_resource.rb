@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'pry'
 module KubernetesDeploy
   class CustomResource < KubernetesResource
     def initialize(namespace:, context:, definition:, logger:, statsd_tags: [], crd:)
@@ -13,7 +14,7 @@ module KubernetesDeploy
 
     def deploy_succeeded?
       if monitor_rollout?
-        condition_status("Ready")
+        condition("Ready")["status"] == "True"
       else
         super
       end
@@ -21,10 +22,14 @@ module KubernetesDeploy
 
     def deploy_failed?
       if monitor_rollout?
-        condition_status("Failed")
+        condition("Failed")["status"] == "True"
       else
         super
       end
+    end
+
+    def failure_message
+      condition("Failed")["message"] || "unknown error deploying #{id}"
     end
 
     def id
@@ -37,11 +42,10 @@ module KubernetesDeploy
 
     private
 
-    def condition_status(condition_type)
-      return false unless condition = @instance_data&.dig("status", "Conditions")&.find do |cond|
-        cond["type"] == condition_type
-      end
-      condition["status"] == "True"
+    def condition(type)
+      @instance_data&.dig("status", "Conditions")&.find do |cond|
+        cond["type"] == type
+      end || {}
     end
 
     def kind
