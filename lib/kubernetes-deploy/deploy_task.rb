@@ -67,6 +67,19 @@ module KubernetesDeploy
     # extensions/v1beta1/ReplicaSet -- managed by deployments
     # core/v1/Secret -- should not committed / managed by shipit
 
+    def predeploy_sequence
+      base_sequence = %w(
+        ResourceQuota
+        ConfigMap
+        PersistentVolumeClaim
+        ServiceAccount
+        RoleBinding
+        Pod
+      )
+
+      base_sequence + cluster_resource_discoverer.crds(@sync_mediator).map(&:kind)
+    end
+
     def prune_whitelist
       wl = %w(
         core/v1/ConfigMap
@@ -145,8 +158,6 @@ module KubernetesDeploy
         ejson.run
       end
 
-      add_custom_resources_to_predeploy_sequence(resources)
-
       if deploy_has_priority_resources?(resources)
         @logger.phase_heading("Predeploying priority resources")
         start_priority_resource = Time.now.utc
@@ -211,18 +222,12 @@ module KubernetesDeploy
       )
     end
 
-    def add_custom_resources_to_predeploy_sequence(resources)
-      crds = cluster_resource_discoverer.crds(@sync_mediator).map(&:kind)
-      discovered_crs = resources.select { |resource| crds.include? resource.type }
-      DeployTask.const_set("PREDEPLOY_SEQUENCE", (discovered_crs.map(&:type) + BASE_PREDEPLOY_SEQUENCE).uniq)
-    end
-
     def deploy_has_priority_resources?(resources)
-      resources.any? { |r| PREDEPLOY_SEQUENCE.include?(r.type) }
+      resources.any? { |r| predeploy_sequence.include?(r.type) }
     end
 
     def predeploy_priority_resources(resource_list)
-      PREDEPLOY_SEQUENCE.each do |resource_type|
+      predeploy_sequence.each do |resource_type|
         matching_resources = resource_list.select { |r| r.type == resource_type }
         next if matching_resources.empty?
         deploy_resources(matching_resources, verify: true, record_summary: false)

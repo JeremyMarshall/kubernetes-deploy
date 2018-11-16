@@ -36,11 +36,10 @@ module KubernetesDeploy
                  statsd_tags: statsd_tags }
         if definition["kind"].blank?
           raise InvalidTemplateError.new("Template missing 'Kind'", content: definition.to_yaml)
-        elsif KubernetesDeploy.const_defined?(definition["kind"]) # Hardcoded CRs
+        elsif KubernetesDeploy.const_defined?(definition["kind"])
           klass = KubernetesDeploy.const_get(definition["kind"])
           klass.new(**opts)
-        elsif crds.map(&:kind).include? definition["kind"]        # Dynamic CRs
-          crd = crds.find { |crd| crd.kind == definition["kind"] }
+        elsif crd = crds.find {|crd| crd.kind == definition["kind"] } # Dynamic CRs
           CustomResource.new(crd: crd, **opts)
         else
           inst = new(**opts)
