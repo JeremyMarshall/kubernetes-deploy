@@ -38,7 +38,9 @@ module KubernetesDeploy
     private
 
     def condition_status(condition_type)
-      return false unless condition = @instance_data&.dig("status", "Conditions")&.find { |cond| cond["type"] == condition_type }
+      return false unless condition = @instance_data&.dig("status", "Conditions")&.find do |cond|
+        cond["type"] == condition_type
+      end
       condition["status"] == "True"
     end
 

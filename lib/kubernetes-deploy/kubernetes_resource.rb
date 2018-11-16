@@ -39,7 +39,7 @@ module KubernetesDeploy
         elsif KubernetesDeploy.const_defined?(definition["kind"])
           klass = KubernetesDeploy.const_get(definition["kind"])
           klass.new(**opts)
-        elsif crd = crds.find {|crd| crd.kind == definition["kind"] } # Dynamic CRs
+        elsif crd = crds.find { |crd| crd.kind == definition["kind"] } # Dynamic CRs
           CustomResource.new(crd: crd, **opts)
         else
           inst = new(**opts)
