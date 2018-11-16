@@ -7,21 +7,13 @@ module KubernetesDeploy
             logger: logger, statsd_tags: statsd_tags)
     end
 
-    def sync(mediator)
-      @instance_data = mediator.get_instance(kind, name, raise_if_not_found: true)
-    rescue KubernetesDeploy::Kubectl::ResourceNotFoundError
-      @disappeared = true if deploy_started?
-      @instance_data = {}
-    end
-
     def timeout
       timeout_override || @crd.timeout_for_children || super
     end
 
     def deploy_succeeded?
       if monitor_rollout?
-        return false unless ready_status = @instance_data&.dig("status", "Conditions")&.find { |cond| cond["type"] == "Ready" }
-        ready_status["status"] == "True"
+        condition_status("Ready")
       else
         super
       end
@@ -29,8 +21,7 @@ module KubernetesDeploy
 
     def deploy_failed?
       if monitor_rollout?
-        return false unless failed_status = @instance_data&.dig("status", "Conditions")&.find { |cond| cond["type"] == "Failed" }
-        failed_status["status"] == "True"
+        condition_status("Failed")
       else
         super
       end
@@ -45,6 +36,11 @@ module KubernetesDeploy
     end
 
     private
+
+    def condition_status(condition_type)
+      return false unless condition = @instance_data&.dig("status", "Conditions")&.find { |cond| cond["type"] == condition_type }
+      condition["status"] == "True"
+    end
 
     def kind
       @definition["kind"]
