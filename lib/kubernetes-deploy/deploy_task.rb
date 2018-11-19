@@ -250,19 +250,19 @@ module KubernetesDeploy
 
     def discover_resources
       resources = []
-      crds = cluster_resource_discoverer.crds(@sync_mediator)
+      crds = cluster_resource_discoverer.crds(@sync_mediator).each_with_object({}) { |crd, memo| memo[crd.kind] = crd }
       @logger.info("Discovering templates:")
 
       Dir.foreach(@template_dir) do |filename|
         next unless filename.end_with?(".yml.erb", ".yml", ".yaml", ".yaml.erb")
 
         split_templates(filename) do |r_def|
-          if (crd = crds.find { |crd| crd.kind == r_def["kind"] }) && !KubernetesDeploy.const_defined?(r_def["kind"])
-            r = CustomResource.new(namespace: @namespace, context: @context, logger: @logger,
-                                    definition: r_def, statsd_tags: @namespace_tags, crd: crd)
+          r = if crds[r_def["kind"]] && !KubernetesDeploy.const_defined?(r_def["kind"])
+            CustomResource.new(namespace: @namespace, context: @context, logger: @logger,
+                                      definition: r_def, statsd_tags: @namespace_tags, crd: crds[r_def["kind"]])
           else
-            r = KubernetesResource.build(namespace: @namespace, context: @context, logger: @logger,
-                                    definition: r_def, statsd_tags: @namespace_tags)
+            KubernetesResource.build(namespace: @namespace, context: @context, logger: @logger,
+                                      definition: r_def, statsd_tags: @namespace_tags)
           end
           resources << r
           @logger.info "  - #{r.id}"
