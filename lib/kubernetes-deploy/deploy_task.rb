@@ -44,15 +44,6 @@ module KubernetesDeploy
   class DeployTask
     include KubeclientBuilder
 
-    BASE_PREDEPLOY_SEQUENCE = %w(
-      ResourceQuota
-      ConfigMap
-      PersistentVolumeClaim
-      ServiceAccount
-      RoleBinding
-      Pod
-    )
-
     PROTECTED_NAMESPACES = %w(
       default
       kube-system
@@ -77,7 +68,7 @@ module KubernetesDeploy
         Pod
       )
 
-      base_sequence + cluster_resource_discoverer.crds(@sync_mediator).map(&:kind)
+      cluster_resource_discoverer.crds(@sync_mediator).map(&:kind) + base_sequence
     end
 
     def prune_whitelist
