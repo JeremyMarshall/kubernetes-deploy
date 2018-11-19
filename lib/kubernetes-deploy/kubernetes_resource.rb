@@ -31,7 +31,7 @@ module KubernetesDeploy
     TIMEOUT_OVERRIDE_ANNOTATION = "kubernetes-deploy.shopify.io/timeout-override"
 
     class << self
-      def build(namespace:, context:, definition:, logger:, statsd_tags:, crds: [])
+      def build(namespace:, context:, definition:, logger:, statsd_tags:)
         opts = { namespace: namespace, context: context, definition: definition, logger: logger,
                  statsd_tags: statsd_tags }
         if definition["kind"].blank?
@@ -39,8 +39,6 @@ module KubernetesDeploy
         elsif KubernetesDeploy.const_defined?(definition["kind"])
           klass = KubernetesDeploy.const_get(definition["kind"])
           klass.new(**opts)
-        elsif crd = crds.find { |crd| crd.kind == definition["kind"] } # Dynamic CRs
-          CustomResource.new(crd: crd, **opts)
         else
           inst = new(**opts)
           inst.type = definition["kind"]
