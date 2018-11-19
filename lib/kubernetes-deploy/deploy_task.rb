@@ -257,9 +257,10 @@ module KubernetesDeploy
         next unless filename.end_with?(".yml.erb", ".yml", ".yaml", ".yaml.erb")
 
         split_templates(filename) do |r_def|
-          r = if crds[r_def["kind"]] && !KubernetesDeploy.const_defined?(r_def["kind"])
+          kind = r_def["kind"]
+          r = if crds[kind] && !KubernetesDeploy.const_defined?(r_def["kind"])
             CustomResource.new(namespace: @namespace, context: @context, logger: @logger,
-                                      definition: r_def, statsd_tags: @namespace_tags, crd: crds[r_def["kind"]])
+                                      definition: r_def, statsd_tags: @namespace_tags, crd: crds[kind])
           else
             KubernetesResource.build(namespace: @namespace, context: @context, logger: @logger,
                                       definition: r_def, statsd_tags: @namespace_tags)
