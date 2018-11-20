@@ -260,7 +260,7 @@ module KubernetesDeploy
           kind = r_def["kind"]
           r = if crds[kind] && !KubernetesDeploy.const_defined?(r_def["kind"])
             CustomResource.new(namespace: @namespace, context: @context, logger: @logger,
-                                      definition: r_def, statsd_tags: @namespace_tags, crd: crds[kind])
+                                definition: r_def, statsd_tags: @namespace_tags, crd: crds[kind])
           else
             KubernetesResource.build(namespace: @namespace, context: @context, logger: @logger,
                                       definition: r_def, statsd_tags: @namespace_tags)
