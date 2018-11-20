@@ -3,7 +3,7 @@ module KubernetesDeploy
   class CustomResourceDefinition < KubernetesResource
     TIMEOUT = 2.minutes
     CHILD_CR_TIMEOUT_ANNOTATION = "kubernetes-deploy.shopify.io/cr-timeout-override"
-    MONITOR_ROLLOUT_ANNOTATION = "kubernetes-deploy.shopify.io/monitor-rollout"
+    ROLLOUT_PARAMS_ANNOTATION = "kubernetes-deploy.shopify.io/cr-rollout-params"
     GLOBAL = true
 
     def deploy_succeeded?
@@ -47,11 +47,23 @@ module KubernetesDeploy
       @definition.dig("metadata", "annotations", CHILD_CR_TIMEOUT_ANNOTATION)&.to_i
     end
 
-    def monitor_rollouts?
-      @definition.dig("metadata", "annotations", MONITOR_ROLLOUT_ANNOTATION) == "true"
+    def rollout_params
+      return nil unless rollout_params_string
+
+      params = JSON.parse(rollout_params_string)
+      {
+        success_queries: params["success_queries"] || default_success_query,
+        failure_queries: params["failure_queries"] || default_failure_query,
+      }.deep_symbolize_keys
+    rescue JSON::ParserError
+      raise FatalDeploymentError, "custom rollout params are not valid JSON: '#{rollout_params_string}'"
     end
 
     private
+
+    def rollout_params_string
+      @definition.dig("metadata", "annotations", ROLLOUT_PARAMS_ANNOTATION)
+    end
 
     def names_accepted_condition
       conditions = @instance_data.dig("status", "conditions") || []
@@ -60,6 +72,18 @@ module KubernetesDeploy
 
     def names_accepted_status
       names_accepted_condition["status"]
+    end
+
+    def default_success_query
+      [{ path: '$.status.Conditions[?(@.type == "Ready")].status', value: "True" }]
+    end
+
+    def default_failure_query
+      [{
+        path: '$.status.Conditions[?(@.type == "Failed")].status',
+        value: "True",
+        error_msg_path: '$.status.Conditions[?(@.type == "Failed")].message'
+      }]
     end
   end
 end
