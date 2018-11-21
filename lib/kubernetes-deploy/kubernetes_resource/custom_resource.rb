@@ -44,12 +44,6 @@ module KubernetesDeploy
 
     private
 
-    def condition(type)
-      @instance_data&.dig("status", "Conditions")&.find do |cond|
-        cond["type"] == type
-      end || {}
-    end
-
     def kind
       @definition["kind"]
     end
