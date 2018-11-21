@@ -50,11 +50,14 @@ module KubernetesDeploy
     def rollout_params
       return nil unless rollout_params_string
 
-      params = JSON.parse(rollout_params_string)
-      {
-        success_queries: params["success_queries"] || default_success_query,
-        failure_queries: params["failure_queries"] || default_failure_query,
+      raw_params = JSON.parse(rollout_params_string)
+      params = {
+        success_queries: raw_params["success_queries"] || default_success_query,
+        failure_queries: raw_params["failure_queries"] || default_failure_query,
       }.deep_symbolize_keys
+      # Preemptively check if the supplied JsonPath expressions are valid
+      params if validate_params(params)
+
     rescue JSON::ParserError
       raise FatalDeploymentError, "custom rollout params are not valid JSON: '#{rollout_params_string}'"
     end
@@ -87,6 +90,16 @@ module KubernetesDeploy
         value: "True",
         error_msg_path: '$.status.Conditions[?(@.type == "Failed")].message'
       }]
+    end
+
+    def validate_params(params)
+      params[:success_queries].each { |query| JsonPath.new(query[:path]) }
+      params[:failure_queries].each do |query|
+        JsonPath.new(query[:path])
+        JsonPath.new(query[:error_msg_path]) if query[:error_msg_path]
+      end
+    rescue RuntimeError => e
+      raise FatalDeploymentError, "error parsing JsonPath expression for custom resource params: #{e.message}"
     end
   end
 end

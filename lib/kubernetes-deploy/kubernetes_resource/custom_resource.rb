@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require 'pry'
 require 'jsonpath'
 module KubernetesDeploy
   class CustomResource < KubernetesResource
@@ -15,17 +14,21 @@ module KubernetesDeploy
 
     def deploy_succeeded?
       return super unless rollout_params
-      rollout_params[:success_queries]&.all? { |query| jsonpath_query(path: query[:path]) == query[:value] }
+      rollout_params[:success_queries].all? do |query|
+        JsonPath.new(query[:path]).first(@instance_data) == query[:value]
+      end
     end
 
     def deploy_failed?
       return super unless rollout_params
-      rollout_params[:failure_queries].any? { |query| jsonpath_query(path: query[:path]) == query[:value] }
+      rollout_params[:failure_queries].any? do |query|
+        JsonPath.new(query[:path]).first(@instance_data) == query[:value]
+      end
     end
 
     def failure_message
       messages = rollout_params[:failure_queries].map do |query|
-        jsonpath_query(path: query[:error_msg_path]) if query[:error_msg_path]
+        JsonPath.new(query[:error_msg_path]).first(@instance_data) if query[:error_msg_path]
       end.compact
       messages.present? ? messages.join("\n") : "error deploying #{id}"
     end
@@ -52,12 +55,6 @@ module KubernetesDeploy
 
     def rollout_params
       @rollout_params ||= @crd.rollout_params
-    end
-
-    def jsonpath_query(path:)
-      JsonPath.new(path).first(@instance_data)
-    rescue StandardError
-      raise FatalDeploymentError, "fatal error for #{id}. Failed to parse JsonPath for #{path}"
     end
   end
 end
