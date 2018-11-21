@@ -15,18 +15,12 @@ module KubernetesDeploy
 
     def deploy_succeeded?
       return super unless rollout_params
-
-      rollout_params[:success_queries]&.all? do |query|
-        jsonpath_query(path: query[:path]) == query[:value]
-      end
+      rollout_params[:success_queries]&.all? { |query| jsonpath_query(path: query[:path]) == query[:value] }
     end
 
     def deploy_failed?
       return super unless rollout_params
-
-      rollout_params[:failure_queries].any? do |query|
-        jsonpath_query(path: query[:path]) == query[:value]
-      end
+      rollout_params[:failure_queries].any? { |query| jsonpath_query(path: query[:path]) == query[:value] }
     end
 
     def failure_message

@@ -61,10 +61,6 @@ module KubernetesDeploy
 
     private
 
-    def rollout_params_string
-      @definition.dig("metadata", "annotations", ROLLOUT_PARAMS_ANNOTATION)
-    end
-
     def names_accepted_condition
       conditions = @instance_data.dig("status", "conditions") || []
       conditions.detect { |c| c["type"] == "NamesAccepted" } || {}
@@ -74,8 +70,15 @@ module KubernetesDeploy
       names_accepted_condition["status"]
     end
 
+    def rollout_params_string
+      @definition.dig("metadata", "annotations", ROLLOUT_PARAMS_ANNOTATION)
+    end
+
     def default_success_query
-      [{ path: '$.status.Conditions[?(@.type == "Ready")].status', value: "True" }]
+      [{
+        path: '$.status.Conditions[?(@.type == "Ready")].status',
+        value: "True"
+      }]
     end
 
     def default_failure_query

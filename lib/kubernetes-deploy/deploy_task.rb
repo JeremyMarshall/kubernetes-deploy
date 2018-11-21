@@ -258,7 +258,7 @@ module KubernetesDeploy
 
         split_templates(filename) do |r_def|
           kind = r_def["kind"]
-          r = if crds[kind] && !KubernetesDeploy.const_defined?(r_def["kind"])
+          r = if crds[kind] && !KubernetesDeploy.const_defined?(kind)
             CustomResource.new(namespace: @namespace, context: @context, logger: @logger,
                                 definition: r_def, statsd_tags: @namespace_tags, crd: crds[kind])
           else
