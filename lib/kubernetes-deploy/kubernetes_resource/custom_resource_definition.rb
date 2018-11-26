@@ -97,7 +97,9 @@ module KubernetesDeploy
       params[:failure_queries].each do |query|
         JsonPath.new(query[:path])
         JsonPath.new(query[:error_msg_path]) if query[:error_msg_path]
-        raise RuntimeError if query[:custom_error_msg] && !query[:custom_error_msg].is_a?(String)
+        if query[:custom_error_msg] && !query[:custom_error_msg].is_a?(String)
+          raise RuntimeError, "custom_error_msg must be a string, but found #{query[:custom_error_msg]}"
+        end
       end
     rescue RuntimeError => e
       raise FatalDeploymentError, "error parsing JsonPath expression for custom resource params: #{e.message}"
