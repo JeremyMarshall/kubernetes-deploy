@@ -29,7 +29,11 @@ module KubernetesDeploy
     def failure_message
       messages = rollout_params[:failure_queries].map do |query|
         next unless JsonPath.new(query[:path]).first(@instance_data) == query[:value]
-        JsonPath.new(query[:error_msg_path]).first(@instance_data) if query[:error_msg_path]
+        if query[:custom_error_msg]
+          query[:custom_error_msg]
+        else
+          JsonPath.new(query[:error_msg_path]).first(@instance_data) if query[:error_msg_path]
+        end
       end.compact
       messages.present? ? messages.join("\n") : "error deploying #{id}"
     end
