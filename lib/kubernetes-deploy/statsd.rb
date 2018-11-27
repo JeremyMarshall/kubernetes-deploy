@@ -22,18 +22,5 @@ module KubernetesDeploy
         self.backend = ::StatsD::Instrument::Backends::NullBackend.new
       end
     end
-
-    def self.capture_statsd_calls(&block)
-      mock_backend = ::StatsD::Instrument::Backends::CaptureBackend.new
-      old_backend, self.backend = self.backend, mock_backend
-      block.call
-      mock_backend.collected_metrics
-    ensure
-      if old_backend.kind_of?(::StatsD::Instrument::Backends::CaptureBackend)
-        old_backend.collected_metrics.concat(mock_backend.collected_metrics)
-      end
-
-      self.backend = old_backend
-    end
   end
 end

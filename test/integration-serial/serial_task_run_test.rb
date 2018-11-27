@@ -29,14 +29,14 @@ class SerialTaskRunTest < KubernetesDeploy::IntegrationTest
     ], in_order: true)
   end
 
-  # Run statsd tests in serial because KubernetesDeploy::StatsD.capture_statsd_calls modifies global state in a way
+  # Run statsd tests in serial because StatsDHelper.capture_statsd_calls modifies global state in a way
   # that makes capturing metrics across parrallel runs unreliable
   def test_failure_statsd_metric_emitted
     bad_ns = "missing"
     task_runner = build_task_runner(ns: bad_ns)
 
     result = false
-    metrics = KubernetesDeploy::StatsD.capture_statsd_calls do
+    metrics = StatsDHelper.capture_statsd_calls do
       result = task_runner.run(run_params)
     end
 
@@ -54,7 +54,7 @@ class SerialTaskRunTest < KubernetesDeploy::IntegrationTest
     task_runner = build_task_runner
 
     result = false
-    metrics = KubernetesDeploy::StatsD.capture_statsd_calls do
+    metrics = StatsDHelper.capture_statsd_calls do
       result = task_runner.run(run_params.merge(verify_result: false))
     end
 
@@ -72,7 +72,7 @@ class SerialTaskRunTest < KubernetesDeploy::IntegrationTest
     task_runner = build_task_runner(max_watch_seconds: 0)
 
     result = false
-    metrics = KubernetesDeploy::StatsD.capture_statsd_calls do
+    metrics = StatsDHelper.capture_statsd_calls do
       result = task_runner.run(run_params.merge(args: ["sleep 5"]))
     end
 
