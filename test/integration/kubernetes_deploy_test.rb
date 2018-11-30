@@ -867,7 +867,7 @@ unknown field \"myKey\" in io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta",
 
     rq = rqs[0]
     assert_equal("resource-quotas", rq["metadata"]["name"])
-    assert(rq["spec"].present?)
+    assert_predicate(rq["spec"], :present?)
   end
 
   def test_ejson_secrets_respects_no_prune_flag
@@ -912,7 +912,7 @@ unknown field \"myKey\" in io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta",
     assert_deploy_success(result)
     original_rs = v1beta1_kubeclient.get_replica_sets(namespace: @namespace).first
     original_rs_uid = original_rs["metadata"]["uid"]
-    assert(original_rs_uid.present?)
+    assert_predicate(original_rs_uid, :present?)
     assert_equal(2, original_rs["status"]["availableReplicas"])
 
     # Bad deploy
