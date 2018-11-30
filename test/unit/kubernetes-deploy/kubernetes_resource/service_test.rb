@@ -10,14 +10,14 @@ class ServiceTest < KubernetesDeploy::TestCase
 
     stub_kind_get("Service", items: [])
     svc.sync(build_resource_cache)
-    refute(svc.exists?)
-    refute(svc.deploy_succeeded?)
+    refute_predicate(svc, :exists?)
+    refute_predicate(svc, :deploy_succeeded?)
     assert_equal("Not found", svc.status)
 
     stub_kind_get("Service", items: [svc_def])
     svc.sync(build_resource_cache)
-    assert(svc.exists?)
-    assert(svc.deploy_succeeded?)
+    assert_predicate(svc, :exists?)
+    assert_predicate(svc, :deploy_succeeded?)
     assert_equal("Doesn't require any endpoints", svc.status)
   end
 
@@ -27,8 +27,8 @@ class ServiceTest < KubernetesDeploy::TestCase
 
     stub_kind_get("Service", items: [svc_def])
     svc.sync(build_resource_cache)
-    assert(svc.exists?)
-    assert(svc.deploy_succeeded?)
+    assert_predicate(svc, :exists?)
+    assert_predicate(svc, :deploy_succeeded?)
     assert_equal("Doesn't require any endpoints", svc.status) # TODO: this is not strictly correct
   end
 
@@ -60,8 +60,8 @@ class ServiceTest < KubernetesDeploy::TestCase
     stub_kind_get("Pod", items: [])
     svc.sync(build_resource_cache)
 
-    assert(svc.exists?)
-    refute(svc.deploy_succeeded?)
+    assert_predicate(svc, :exists?)
+    refute_predicate(svc, :deploy_succeeded?)
     assert_equal("Selects 0 pods", svc.status)
 
     stub_kind_get("Service", items: [svc_def])
@@ -69,8 +69,8 @@ class ServiceTest < KubernetesDeploy::TestCase
     stub_kind_get("Pod", items: pod_fixtures)
     svc.sync(build_resource_cache)
 
-    assert(svc.exists?)
-    assert(svc.deploy_succeeded?)
+    assert_predicate(svc, :exists?)
+    assert_predicate(svc, :deploy_succeeded?)
     assert_equal("Selects at least 1 pod", svc.status)
   end
 
@@ -83,8 +83,8 @@ class ServiceTest < KubernetesDeploy::TestCase
     stub_kind_get("Pod", items: [])
     svc.sync(build_resource_cache)
 
-    assert(svc.exists?)
-    refute(svc.deploy_succeeded?)
+    assert_predicate(svc, :exists?)
+    refute_predicate(svc, :deploy_succeeded?)
     assert_equal("Selects 0 pods", svc.status)
   end
 
@@ -97,8 +97,8 @@ class ServiceTest < KubernetesDeploy::TestCase
     stub_kind_get("Pod", items: [])
     svc.sync(build_resource_cache)
 
-    assert(svc.exists?)
-    assert(svc.deploy_succeeded?)
+    assert_predicate(svc, :exists?)
+    assert_predicate(svc, :deploy_succeeded?)
     assert_equal("Doesn't require any endpoints", svc.status)
   end
 
