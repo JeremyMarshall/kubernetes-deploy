@@ -25,7 +25,7 @@ class KubectlTest < KubernetesDeploy::TestCase
       resp: "{ items: [] }")
 
     out, err, st = build_kubectl.run("get", "pods", "-a", "--output=json")
-    assert(st.success?)
+    assert_predicate(st, :success?)
     assert_equal("{ items: [] }", out)
     assert_equal("", err)
   end
