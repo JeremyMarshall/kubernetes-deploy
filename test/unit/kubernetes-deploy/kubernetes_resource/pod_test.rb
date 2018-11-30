@@ -14,7 +14,7 @@ class PodTest < KubernetesDeploy::TestCase
       },
     }
     pod = build_synced_pod(build_pod_template(container_state: container_state))
-    assert(pod.deploy_failed?)
+    assert_predicate(pod, :deploy_failed?)
 
     expected_msg = <<~STRING
       The following containers encountered errors:
@@ -34,7 +34,7 @@ class PodTest < KubernetesDeploy::TestCase
       },
     }
     pod = build_synced_pod(build_pod_template(container_state: container_state))
-    assert(pod.deploy_failed?)
+    assert_predicate(pod, :deploy_failed?)
 
     expected_msg = <<~STRING
       The following containers encountered errors:
@@ -54,7 +54,7 @@ class PodTest < KubernetesDeploy::TestCase
     }
     pod = build_synced_pod(build_pod_template(container_state: container_state))
 
-    refute(pod.deploy_failed?)
+    refute_predicate(pod, :deploy_failed?)
     assert_nil(pod.failure_message)
   end
 
@@ -69,7 +69,7 @@ class PodTest < KubernetesDeploy::TestCase
     }
     pod = build_synced_pod(build_pod_template(container_state: container_state))
 
-    assert(pod.deploy_failed?)
+    assert_predicate(pod, :deploy_failed?)
     expected_msg = <<~STRING
       The following containers encountered errors:
       > hello-cloud: Failed to pull image busybox. Did you wait for it to be built and pushed to the registry before deploying?
@@ -88,7 +88,7 @@ class PodTest < KubernetesDeploy::TestCase
     }
     pod = build_synced_pod(build_pod_template(container_state: container_state))
 
-    assert(pod.deploy_failed?)
+    assert_predicate(pod, :deploy_failed?)
     expected_msg = <<~STRING
       The following containers encountered errors:
       > hello-cloud: Failed to generate container configuration: The reason it failed
@@ -110,7 +110,7 @@ class PodTest < KubernetesDeploy::TestCase
     }
     pod = build_synced_pod(build_pod_template(container_state: container_state))
 
-    assert(pod.deploy_failed?)
+    assert_predicate(pod, :deploy_failed?)
     expected_msg = <<~STRING
       The following containers encountered errors:
       > hello-cloud: Crashing repeatedly (exit 1). See logs for more information.
@@ -130,7 +130,7 @@ class PodTest < KubernetesDeploy::TestCase
     }
     pod = build_synced_pod(build_pod_template(container_state: container_state))
 
-    assert(pod.deploy_failed?)
+    assert_predicate(pod, :deploy_failed?)
     expected_msg = <<~STRING
       The following containers encountered errors:
       > hello-cloud: Failed to start (exit 127): /not/a/command: no such file or directory
