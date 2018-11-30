@@ -20,7 +20,7 @@ class DeploymentTest < KubernetesDeploy::TestCase
     dep_template = build_deployment_template(status: deployment_status, rollout: 'none',
       strategy: 'RollingUpdate', max_unavailable: 1)
     deploy = build_synced_deployment(template: dep_template, replica_sets: [build_rs_template(status: rs_status)])
-    assert(deploy.deploy_succeeded?)
+    assert_predicate(deploy, :deploy_succeeded?)
   end
 
   def test_deploy_succeeded_is_false_with_none_annotation_before_new_rs_created
@@ -34,7 +34,7 @@ class DeploymentTest < KubernetesDeploy::TestCase
       template: build_deployment_template(status: deployment_status, rollout: 'none'),
       replica_sets: []
     )
-    refute(deploy.deploy_succeeded?)
+    refute_predicate(deploy, :deploy_succeeded?)
   end
 
   def test_deploy_succeeded_with_max_unavailable
@@ -56,25 +56,25 @@ class DeploymentTest < KubernetesDeploy::TestCase
       template: build_deployment_template(status: deployment_status, rollout: 'maxUnavailable', max_unavailable: 3),
       replica_sets: replica_sets
     )
-    assert(deploy.deploy_succeeded?)
+    assert_predicate(deploy, :deploy_succeeded?)
 
     deploy = build_synced_deployment(
       template: build_deployment_template(status: deployment_status, rollout: 'maxUnavailable', max_unavailable: 2),
       replica_sets: replica_sets
     )
-    assert(deploy.deploy_succeeded?)
+    assert_predicate(deploy, :deploy_succeeded?)
 
     deploy = build_synced_deployment(
       template: build_deployment_template(status: deployment_status, rollout: 'maxUnavailable', max_unavailable: 1),
       replica_sets: replica_sets
     )
-    refute(deploy.deploy_succeeded?)
+    refute_predicate(deploy, :deploy_succeeded?)
 
     deploy = build_synced_deployment(
       template: build_deployment_template(status: deployment_status, rollout: 'maxUnavailable', max_unavailable: 0),
       replica_sets: replica_sets
     )
-    refute(deploy.deploy_succeeded?)
+    refute_predicate(deploy, :deploy_succeeded?)
   end
 
   def test_deploy_succeeded_with_annotation_as_percent
@@ -96,25 +96,25 @@ class DeploymentTest < KubernetesDeploy::TestCase
       template: build_deployment_template(status: deployment_status, rollout: '0%'),
       replica_sets: replica_sets
     )
-    assert(deploy.deploy_succeeded?)
+    assert_predicate(deploy, :deploy_succeeded?)
 
     deploy = build_synced_deployment(
       template: build_deployment_template(status: deployment_status, rollout: '33%'),
       replica_sets: replica_sets
     )
-    assert(deploy.deploy_succeeded?)
+    assert_predicate(deploy, :deploy_succeeded?)
 
     deploy = build_synced_deployment(
       template: build_deployment_template(status: deployment_status, rollout: '34%'),
       replica_sets: replica_sets
     )
-    refute(deploy.deploy_succeeded?)
+    refute_predicate(deploy, :deploy_succeeded?)
 
     deploy = build_synced_deployment(
       template: build_deployment_template(status: deployment_status, rollout: '100%'),
       replica_sets: replica_sets
     )
-    refute(deploy.deploy_succeeded?)
+    refute_predicate(deploy, :deploy_succeeded?)
   end
 
   def test_deploy_succeeded_with_max_unavailable_as_percent
@@ -135,27 +135,27 @@ class DeploymentTest < KubernetesDeploy::TestCase
     dep_template = build_deployment_template(status: deployment_status,
       rollout: 'maxUnavailable', max_unavailable: '100%')
     deploy = build_synced_deployment(template: dep_template, replica_sets: replica_sets)
-    assert(deploy.deploy_succeeded?)
+    assert_predicate(deploy, :deploy_succeeded?)
 
     # rounds up to two max
     deploy = build_synced_deployment(
       template: build_deployment_template(status: deployment_status, rollout: 'maxUnavailable', max_unavailable: '67%'),
       replica_sets: replica_sets
     )
-    assert(deploy.deploy_succeeded?)
+    assert_predicate(deploy, :deploy_succeeded?)
 
     # rounds down to one max
     deploy = build_synced_deployment(
       template: build_deployment_template(status: deployment_status, rollout: 'maxUnavailable', max_unavailable: '66%'),
       replica_sets: replica_sets
     )
-    refute(deploy.deploy_succeeded?)
+    refute_predicate(deploy, :deploy_succeeded?)
 
     deploy = build_synced_deployment(
       template: build_deployment_template(status: deployment_status, rollout: 'maxUnavailable', max_unavailable: '0%'),
       replica_sets: replica_sets
     )
-    refute(deploy.deploy_succeeded?)
+    refute_predicate(deploy, :deploy_succeeded?)
   end
 
   def test_deploy_succeeded_raises_with_invalid_rollout_annotation
