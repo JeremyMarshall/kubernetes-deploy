@@ -5,8 +5,8 @@ class EjsonSecretProvisionerTest < KubernetesDeploy::TestCase
   def test_secret_changes_required_based_on_ejson_file_existence
     stub_kubectl_response("get", "secrets", resp: { items: [dummy_ejson_secret] })
 
-    refute(build_provisioner(fixture_path('hello-cloud')).secret_changes_required?)
-    assert(build_provisioner(fixture_path('ejson-cloud')).secret_changes_required?)
+    refute_predicate(build_provisioner(fixture_path('hello-cloud')), :secret_changes_required?)
+    assert_predicate(build_provisioner(fixture_path('ejson-cloud')), :secret_changes_required?)
   end
 
   def test_secret_changes_required_based_on_managed_secret_existence
@@ -14,7 +14,7 @@ class EjsonSecretProvisionerTest < KubernetesDeploy::TestCase
       "get", "secrets",
       resp: { items: [dummy_secret_hash(managed: true), dummy_ejson_secret] }
     )
-    assert(build_provisioner(fixture_path('hello-cloud')).secret_changes_required?)
+    assert_predicate(build_provisioner(fixture_path('hello-cloud')), :secret_changes_required?)
   end
 
   def test_run_with_no_secrets_file_or_managed_secrets_no_ops
