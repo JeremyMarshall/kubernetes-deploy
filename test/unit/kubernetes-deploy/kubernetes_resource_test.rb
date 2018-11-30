@@ -119,7 +119,7 @@ class KubernetesResourceTest < KubernetesDeploy::TestCase
     basic_resource = DummyResource.new
     assert_equal(300, basic_resource.timeout)
     basic_resource.validate_definition(kubectl)
-    refute(basic_resource.validation_failed?)
+    refute_predicate(basic_resource, :validation_failed?)
   end
 
   def test_timeout_override_lower_bound_validation
