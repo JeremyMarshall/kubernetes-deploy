@@ -18,7 +18,7 @@ if ENV["PROFILE"]
   require 'ruby-prof-flamegraph'
 end
 
-$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.unshift(File.expand_path('../../lib', __FILE__))
 require 'kubernetes-deploy'
 require 'kubeclient'
 require 'timecop'
@@ -28,7 +28,7 @@ require 'webmock/minitest'
 require 'mocha/minitest'
 require 'minitest/parallel'
 require "minitest/reporters"
-include StatsD::Instrument::Assertions
+include(StatsD::Instrument::Assertions)
 
 Dir.glob(File.expand_path("../helpers/*.rb", __FILE__)).each { |file| require file }
 ENV["KUBECONFIG"] ||= "#{Dir.home}/.kube/config"
@@ -38,22 +38,22 @@ Mocha::Configuration.prevent(:stubbing_non_existent_method)
 Mocha::Configuration.prevent(:stubbing_non_public_method)
 
 if ENV["PARALLELIZE_ME"]
-  Minitest::Reporters.use! [
+  Minitest::Reporters.use!([
     Minitest::Reporters::ParallelizableReporter.new(
       fast_fail: ENV['VERBOSE'] == '1',
       slow_count: 10,
       detailed_skip: false,
       verbose: ENV['VERBOSE'] == '1'
-    )
-  ]
+    ),
+  ])
 else
-  Minitest::Reporters.use! [
+  Minitest::Reporters.use!([
     Minitest::Reporters::DefaultReporter.new(
       slow_count: 10,
       detailed_skip: false,
       verbose: ENV['VERBOSE'] == '1'
-    )
-  ]
+    ),
+  ])
 end
 
 module KubernetesDeploy
@@ -109,7 +109,7 @@ module KubernetesDeploy
 
     def assert_deploy_failure(result, cause = nil)
       if log_to_stderr?
-        assert_equal false, result, "Deploy succeeded when it was expected to fail"
+        assert_equal(false, result, "Deploy succeeded when it was expected to fail")
         return
       end
 
@@ -125,7 +125,7 @@ module KubernetesDeploy
 
     def assert_deploy_success(result)
       if log_to_stderr?
-        assert_equal true, result, "Deploy failed when it was expected to succeed"
+        assert_equal(true, result, "Deploy failed when it was expected to succeed")
         return
       end
 
@@ -140,7 +140,7 @@ module KubernetesDeploy
     def assert_logs_match(regexp, times = nil)
       logging_assertion do |logs|
         unless times
-          assert_match regexp, logs, "'#{regexp}' not found in the following logs:\n#{logs}"
+          assert_match(regexp, logs, "'#{regexp}' not found in the following logs:\n#{logs}")
           return
         end
 
@@ -157,9 +157,9 @@ module KubernetesDeploy
           regex = entry.is_a?(Regexp) ? entry : Regexp.new(Regexp.escape(entry))
           if in_order
             failure_msg = "'#{entry}' not found in the expected sequence in the following logs:\n#{logs}"
-            assert scanner.scan_until(regex), failure_msg
+            assert(scanner.scan_until(regex), failure_msg)
           else
-            assert regex =~ logs, "'#{entry}' not found in the following logs:\n#{logs}"
+            assert(regex =~ logs, "'#{entry}' not found in the following logs:\n#{logs}")
           end
         end
       end
@@ -185,7 +185,7 @@ module KubernetesDeploy
 
     def assert_raises_message(exception_class, exception_message)
       exception = assert_raises(exception_class) { yield }
-      assert_match exception_message, exception.message
+      assert_match(exception_message, exception.message)
       exception
     end
 

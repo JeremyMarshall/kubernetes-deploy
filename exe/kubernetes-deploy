@@ -47,7 +47,7 @@ end
 if !template_dir || template_dir.empty?
   puts "Template directory is unknown. " \
     "Either specify --template-dir argument or set $ENVIRONMENT to use config/deploy/$ENVIRONMENT as a default path."
-  exit 1
+  exit(1)
 end
 
 revision = ENV.fetch('REVISION') do
@@ -76,7 +76,7 @@ begin
     prune: prune
   )
 rescue KubernetesDeploy::DeploymentTimeoutError
-  exit 70
+  exit(70)
 rescue KubernetesDeploy::FatalDeploymentError
-  exit 1
+  exit(1)
 end
